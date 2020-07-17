@@ -8,7 +8,7 @@ import chisel3.experimental.annotate
 import freechips.rocketchip.config.{Field, Config, Parameters}
 import freechips.rocketchip.diplomacy.{LazyModule}
 import freechips.rocketchip.devices.debug.{Debug, HasPeripheryDebugModuleImp}
-import freechips.rocketchip.subsystem.{CanHaveMasterAXI4MemPort, HasExtInterruptsModuleImp, BaseSubsystem}
+import freechips.rocketchip.subsystem.{CanHaveMasterAXI4MemPort, HasExtInterruptsModuleImp, BaseSubsystem, HasTilesModuleImp}
 import freechips.rocketchip.tile.{RocketTile}
 import sifive.blocks.devices.uart.HasPeripheryUARTModuleImp
 import sifive.blocks.devices.gpio.{HasPeripheryGPIOModuleImp}
@@ -21,13 +21,12 @@ import midas.models.{FASEDBridge, AXI4EdgeSummary, CompleteConfig}
 import midas.targetutils.{MemModelAnnotation}
 import firesim.bridges._
 import firesim.configs.MemModelKey
-import tracegen.HasTraceGenTilesModuleImp
+import tracegen.{TraceGenSystemModuleImp}
 import ariane.ArianeTile
 
 import boom.common.{BoomTile}
 
-import chipyard.iobinders.{IOBinders, OverrideIOBinder, ComposeIOBinder}
-import chipyard.{HasChipyardTilesModuleImp}
+import chipyard.iobinders.{IOBinders, OverrideIOBinder, ComposeIOBinder, GetSystemParameters}
 import testchipip.{CanHaveTraceIOModuleImp}
 
 object MainMemoryConsts {
@@ -57,17 +56,20 @@ class WithBlockDeviceBridge extends OverrideIOBinder({
 
 
 class WithFASEDBridge extends OverrideIOBinder({
-  (system: CanHaveMasterAXI4MemPort with BaseSubsystem) => {
-    implicit val p = system.p
+  (system: CanHaveMasterAXI4MemPort) => {
+    implicit val p: Parameters = GetSystemParameters(system)
     (system.mem_axi4 zip system.memAXI4Node.in).foreach({ case (axi4, (_, edge)) =>
       val nastiKey = NastiParameters(axi4.r.bits.data.getWidth,
                                      axi4.ar.bits.addr.getWidth,
                                      axi4.ar.bits.id.getWidth)
-      FASEDBridge(system.module.clock, axi4, system.module.reset.toBool,
-        CompleteConfig(p(firesim.configs.MemModelKey),
-                       nastiKey,
-                       Some(AXI4EdgeSummary(edge)),
-                       Some(MainMemoryConsts.globalName)))
+      system match {
+        case s: BaseSubsystem => FASEDBridge(s.module.clock, axi4, s.module.reset.toBool,
+          CompleteConfig(p(firesim.configs.MemModelKey),
+                         nastiKey,
+                         Some(AXI4EdgeSummary(edge)),
+                         Some(MainMemoryConsts.globalName)))
+        case _ => throw new Exception("Attempting to attach FASED Bridge to misconfigured design")
+      }
     })
     Nil
   }
@@ -88,12 +90,12 @@ class WithDromajoBridge extends ComposeIOBinder({
 
 
 class WithTraceGenBridge extends OverrideIOBinder({
-  (system: HasTraceGenTilesModuleImp) =>
+  (system: TraceGenSystemModuleImp) =>
     GroundTestBridge(system.clock, system.success)(system.p); Nil
 })
 
 class WithFireSimMultiCycleRegfile extends ComposeIOBinder({
-  (system: HasChipyardTilesModuleImp) => {
+  (system: HasTilesModuleImp) => {
     system.outer.tiles.map {
       case r: RocketTile => {
         annotate(MemModelAnnotation(r.module.core.rocketImpl.rf.rf))
@@ -110,7 +112,7 @@ class WithFireSimMultiCycleRegfile extends ComposeIOBinder({
           case _ => Nil
         }
       }
-      case a: ArianeTile => Nil
+      case _ =>
     }
     Nil
   }
