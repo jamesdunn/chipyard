@@ -1,4 +1,5 @@
 WAVEFORM_FLAG=+vcdplusfile=$(sim_out_name).vpd
+SEED_FLAG=+ntb_random_seed=$(RANDOM_SEED)
 
 CLOCK_PERIOD ?= 1.0
 RESET_DELAY ?= 777.7
