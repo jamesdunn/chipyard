@@ -128,3 +128,6 @@
 [submodule "tools/dromajo/dromajo-src"]
 	path = tools/dromajo/dromajo-src
 	url = https://github.com/riscv-boom/dromajo.git
+[submodule "fpga/src/main/scala/fpga-shells"]
+	path = fpga/src/main/scala/fpga-shells
+	url = git@github.com:sifive/fpga-shells.git
