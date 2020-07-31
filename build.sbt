@@ -217,6 +217,10 @@ lazy val firechip = conditionalDependsOn(project in file("generators/firechip"))
     testGrouping in Test := isolateAllTests( (definedTests in Test).value ),
     testOptions in Test += Tests.Argument("-oF")
   )
-lazy val fpgaShells = (project in file("./fpga/src/main/scala/fpga-shells"))
+lazy val fpgaShells = (project in file("./fpga/fpga-shells"))
   .dependsOn(rocketchip, sifive_blocks)
+  .settings(commonSettings)
+
+lazy val freedomPlatforms = (project in file("./fpga"))
+  .dependsOn(rocketchip, sifive_blocks, fpgaShells)
   .settings(commonSettings)
