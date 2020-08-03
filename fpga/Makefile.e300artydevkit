@@ -1,5 +1,4 @@
 # See LICENSE for license details.
-#base_dir := $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 base_dir=$(abspath ..)
 BUILD_DIR := $(base_dir)/fpga/builds/e300artydevkit
 FPGA_DIR := $(base_dir)/fpga/fpga-shells/xilinx
