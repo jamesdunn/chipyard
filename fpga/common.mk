@@ -29,24 +29,28 @@ BOOTROM_DIR ?= ""
 base_dir=$(abspath ..)
 export rocketchip_dir := $(base_dir)/generators/rocket-chip
 SBT ?= java -jar $(rocketchip_dir)/sbt-launch.jar ++2.12.10
+SBT_PROJECT ?= chipyard
+firrtl_dir := $(base_dir)/tools/firrtl
 
 # Build firrtl.jar and put it where chisel3 can find it.
-FIRRTL_JAR ?= $(rocketchip_dir)/firrtl/utils/bin/firrtl.jar
+FIRRTL_JAR := $(base_dir)/lib/firrtl.jar
 FIRRTL ?= java -Xmx2G -Xss8M -XX:MaxPermSize=256M -cp $(FIRRTL_JAR) firrtl.Driver
 
-$(FIRRTL_JAR): $(shell find $(rocketchip_dir)/firrtl/src/main/scala -iname "*.scala")
-	$(MAKE) -C $(rocketchip_dir)/firrtl SBT="$(SBT)" root_dir=$(rocketchip_dir)/firrtl build-scala
-	touch $(FIRRTL_JAR)
-	mkdir -p $(rocketchip_dir)/lib
-	cp -p $(FIRRTL_JAR) $(rocketchip_dir)/lib
-	mkdir -p $(rocketchip_dir)/chisel3/lib
-	cp -p $(FIRRTL_JAR) $(rocketchip_dir)/chisel3/lib
+$(FIRRTL_JAR): $(shell find $(firrtl_dir)/src/main/scala -iname "*.scala")
+	$(MAKE) -C $(firrtl_dir) SBT="$(SBT)" root_dir=$(firrtl_dir) build-scala
+	mkdir -p $(base_dir)/lib
+	cp $(firrtl_dir)/utils/bin/firrtl.jar $(FIRRTL_JAR)
 
 # Build .fir
 firrtl := $(BUILD_DIR)/$(CONFIG_PROJECT).$(CONFIG).fir
 $(firrtl): $(shell find $(base_dir) -name '*.scala') $(FIRRTL_JAR)
 	mkdir -p $(dir $@)
-	$(SBT) "runMain freechips.rocketchip.system.Generator $(BUILD_DIR) $(PROJECT) $(MODEL) $(CONFIG_PROJECT) $(CONFIG)"
+	cd $(base_dir) && $(SBT) "project chipyard" \
+		"runMain freechips.rocketchip.system.Generator \
+			--target-dir $(BUILD_DIR) \
+			--name $(PROJECT).$(MODEL).$(CONFIG) \
+			--top-module $(PROJECT).$(MODEL) \
+			--legacy-configs $(CONFIG_PROJECT).$(CONFIG)"
 
 .PHONY: firrtl
 firrtl: $(firrtl)
