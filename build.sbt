@@ -222,5 +222,5 @@ lazy val fpgaShells = (project in file("./fpga/fpga-shells"))
   .settings(commonSettings)
 
 lazy val freedomPlatforms = (project in file("./fpga"))
-  .dependsOn(rocketchip, sifive_blocks, fpgaShells)
+  .dependsOn(chipyard, fpgaShells)
   .settings(commonSettings)

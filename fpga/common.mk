@@ -42,13 +42,14 @@ $(FIRRTL_JAR): $(shell find $(firrtl_dir)/src/main/scala -iname "*.scala")
 	cp $(firrtl_dir)/utils/bin/firrtl.jar $(FIRRTL_JAR)
 
 # Build .fir
-firrtl := $(BUILD_DIR)/$(CONFIG_PROJECT).$(CONFIG).fir
+long_name := $(CONFIG_PROJECT).$(MODEL).$(CONFIG)
+firrtl := $(BUILD_DIR)/$(long_name).fir
 $(firrtl): $(shell find $(base_dir) -name '*.scala') $(FIRRTL_JAR)
 	mkdir -p $(dir $@)
-	cd $(base_dir) && $(SBT) "project chipyard" \
-		"runMain freechips.rocketchip.system.Generator \
+	cd $(base_dir) && $(SBT) "project freedomPlatforms" \
+		"runMain chipyard.Generator \
 			--target-dir $(BUILD_DIR) \
-			--name $(PROJECT).$(MODEL).$(CONFIG) \
+			--name $(long_name) \
 			--top-module $(PROJECT).$(MODEL) \
 			--legacy-configs $(CONFIG_PROJECT).$(CONFIG)"
 
