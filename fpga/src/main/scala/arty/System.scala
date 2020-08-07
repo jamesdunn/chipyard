@@ -24,13 +24,12 @@ import sifive.blocks.devices.i2c._
 class E300ArtyDevKitSystem(implicit p: Parameters) extends RocketSubsystem
     with HasPeripheryDebug
     with HasPeripheryMockAON
-    with sifive.freedom.example.gcd.CanHavePeripheryGCD
+    with chipyard.example.CanHavePeripheryGCD
     with HasPeripheryUART
     with HasPeripherySPIFlash
     with HasPeripherySPI
     with HasPeripheryGPIO
     with HasPeripheryPWM
-    with HasHierarchicalBusTopology
     with HasPeripheryI2C {
   override lazy val module = new E300ArtyDevKitSystemModule(this)
 }
@@ -38,7 +37,7 @@ class E300ArtyDevKitSystem(implicit p: Parameters) extends RocketSubsystem
 class E300ArtyDevKitSystemModule[+L <: E300ArtyDevKitSystem](_outer: L)
   extends RocketSubsystemModuleImp(_outer)
     with HasPeripheryDebugModuleImp
-    with sifive.freedom.example.gcd.CanHavePeripheryGCDModuleImp
+    with chipyard.example.CanHavePeripheryGCDModuleImp
     with HasPeripheryUARTModuleImp
     with HasPeripherySPIModuleImp
     with HasPeripheryGPIOModuleImp
