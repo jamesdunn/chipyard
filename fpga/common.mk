@@ -42,7 +42,7 @@ $(FIRRTL_JAR): $(shell find $(firrtl_dir)/src/main/scala -iname "*.scala")
 	cp $(firrtl_dir)/utils/bin/firrtl.jar $(FIRRTL_JAR)
 
 # Build .fir
-long_name := $(CONFIG_PROJECT).$(MODEL).$(CONFIG)
+long_name := $(CONFIG_PROJECT).$(CONFIG)
 firrtl := $(BUILD_DIR)/$(long_name).fir
 $(firrtl): $(shell find $(base_dir) -name '*.scala') $(FIRRTL_JAR)
 	mkdir -p $(dir $@)
